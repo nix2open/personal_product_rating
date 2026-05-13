@@ -10,7 +10,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || res.statusText);
+    let code: string | undefined;
+    let detail: string | undefined;
+    try {
+      const j = JSON.parse(text) as { error?: string; detail?: string };
+      code = j.error;
+      detail = j.detail;
+    } catch {
+      /* not JSON */
+    }
+    const err = new Error(text || res.statusText) as Error & { apiCode?: string; apiDetail?: string };
+    err.apiCode = code;
+    err.apiDetail = detail;
+    throw err;
   }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

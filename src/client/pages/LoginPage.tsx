@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiFetch } from "../api";
 import { useI18n } from "../i18n";
 
 export function LoginPage() {
   const { t } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [devLink, setDevLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("error") !== "google") return;
+    setMsg(t("loginGoogleNotConfigured"));
+    const next = new URLSearchParams(searchParams);
+    next.delete("error");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, t]);
 
   const magic = async () => {
     setMsg(null);
@@ -20,15 +30,20 @@ export function LoginPage() {
       );
       if (res.devMagicLinkUrl) setDevLink(res.devMagicLinkUrl);
       setMsg(t("sendMagicLink") + " ✓");
-    } catch (e) {
-      setMsg(String(e));
+    } catch (e: unknown) {
+      const err = e as Error & { apiDetail?: string };
+      if (err.apiDetail === "email_not_configured") {
+        setMsg(t("loginEmailNotConfigured"));
+      } else {
+        setMsg(String(e));
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const google = () => {
-    window.location.href = "/api/auth/google";
+    window.location.assign(new URL("/api/auth/google", window.location.origin).toString());
   };
 
   return (

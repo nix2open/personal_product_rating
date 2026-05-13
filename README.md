@@ -122,6 +122,13 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET
 npx wrangler secret put RESEND_API_KEY   # optional if using magic link email
 ```
 
+**Variables (не секреты)** в том же Worker → **Variables** (или в `wrangler.toml` `[vars]` только для нечувствительных):
+
+| Переменная | Зачем |
+|------------|--------|
+| `GOOGLE_CLIENT_ID` | OAuth Google (без этого кнопка «Google» редиректит на `/login?error=google`). |
+| `RESEND_FROM` | Отправитель письма Resend, например `onboarding@resend.dev` или адрес с **проверенного домена** в Resend. Без него вместе с ключом письма не отправляются (`email_not_configured`). |
+
 4. Google OAuth redirect URI: `https://rating.ethanoloop.ru/api/auth/google/callback`.
 5. Deploy:
 

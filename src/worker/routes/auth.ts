@@ -102,7 +102,8 @@ authRouter.get("/magic-verify", async (c) => {
 
 authRouter.get("/google", async (c) => {
   if (!c.env.GOOGLE_CLIENT_ID || !c.env.GOOGLE_CLIENT_SECRET) {
-    return c.json({ error: "google_not_configured" }, 501);
+    const next = `${baseAppUrl(c.env)}/login?error=google`;
+    return c.redirect(next, 302);
   }
   const state = randomId(16);
   const isSecure = new URL(c.env.APP_URL).protocol === "https:";

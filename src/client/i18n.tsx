@@ -67,6 +67,10 @@ const en: Dict = {
   loadError: "Could not load. Check connection.",
   devMagicHint: "Dev: open the link from the response if email is not configured.",
   granted: "People you share with",
+  loginEmailNotConfigured:
+    "Email sign-in is not set up on the server. In Cloudflare → Worker → Variables and Secrets add RESEND_API_KEY (secret) and RESEND_FROM (e.g. onboarding@resend.dev or your verified domain sender).",
+  loginGoogleNotConfigured:
+    "Google sign-in is not configured. In Cloudflare add plain variable GOOGLE_CLIENT_ID and secret GOOGLE_CLIENT_SECRET; set the OAuth redirect URL to https://YOUR_DOMAIN/api/auth/google/callback.",
 };
 
 const ru: Dict = {
@@ -132,6 +136,10 @@ const ru: Dict = {
   loadError: "Не удалось загрузить. Проверьте соединение.",
   devMagicHint: "Dev: откройте ссылку из ответа, если почта не настроена.",
   granted: "Кому открыт доступ",
+  loginEmailNotConfigured:
+    "Вход по почте не настроен на сервере. В Cloudflare → Worker → Variables and Secrets: добавьте секрет RESEND_API_KEY и переменную RESEND_FROM (например onboarding@resend.dev или отправитель с проверенного домена в Resend).",
+  loginGoogleNotConfigured:
+    "Вход через Google не настроен. В Cloudflare добавьте переменную GOOGLE_CLIENT_ID и секрет GOOGLE_CLIENT_SECRET; в Google Cloud укажите redirect URI: https://ВАШ_ДОМЕН/api/auth/google/callback.",
 };
 
 const I18nCtx = createContext<{

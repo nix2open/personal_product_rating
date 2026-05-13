@@ -10,7 +10,7 @@ APP_URL=http://localhost:5173
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
-# Email magic links via Resend (https://resend.com). If empty, dev mode may return link in JSON when ALLOW_DEV_MAGIC_REVEAL=true
+# Email magic links via Resend (https://resend.com). Production: both required or magic link returns email_not_configured.
 RESEND_API_KEY=
 RESEND_FROM=noreply@yourdomain.com
 
