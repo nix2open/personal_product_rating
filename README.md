@@ -30,6 +30,30 @@ npx wrangler d1 create product-rating-db
 npx wrangler d1 migrations apply product-rating-db --local
 ```
 
+### Заполнить удалённую D1 «в один заход» (рекомендуется)
+
+Нужен **API token** в окружении (тот же, что для GitHub Actions, или отдельный с правами D1):
+
+```bash
+export CLOUDFLARE_API_TOKEN="ваш_токен"
+cd product-rating-pwa
+npm run setup:d1
+```
+
+Или скопируйте `.env.cf.example` → `.env.cf`, вставьте токен, затем:
+
+```bash
+set -a && source .env.cf && set +a && npm run setup:d1
+```
+
+Скрипт `scripts/setup-d1.mjs`:
+
+1. Найдёт базу `product-rating-db` в аккаунте или **создаст** её (`wrangler d1 create … --update-config`).
+2. Подставит **реальный `database_id`** в `wrangler.toml` (вместо `REPLACE_WITH_YOUR_D1_ID`).
+3. Выполнит **`wrangler d1 migrations apply product-rating-db --remote`** — в удалённой D1 появятся все таблицы из `migrations/`.
+
+После этого закоммитьте изменённый `wrangler.toml` и сделайте push (чтобы CI деплой не падал на проверке плейсхолдера).
+
 Create R2 bucket (once):
 
 ```bash

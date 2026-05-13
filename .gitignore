@@ -10,3 +10,6 @@ coverage
 
 # Large local artifacts (do not publish)
 *.tar.gz
+
+# Local Cloudflare API token for scripts (never commit)
+.env.cf
