@@ -54,6 +54,33 @@ set -a && source .env.cf && set +a && npm run setup:d1
 
 После этого закоммитьте изменённый `wrangler.toml` и сделайте push (чтобы CI деплой не падал на проверке плейсхолдера).
 
+#### Ошибки `Authentication error [code: 10000]` (D1) и `9106` (`/memberships`)
+
+Обычно **у API Token нет нужных прав** или Wrangler при токене ходит в `/memberships` без нужных User-разрешений.
+
+1. Задайте **account id** (скрипт подставляет его из `wrangler.toml`, если есть строка `account_id`; иначе вручную):
+
+   ```bash
+   export CLOUDFLARE_ACCOUNT_ID="a07658b9696c332ed90e69e73c8cdaa1"
+   ```
+
+2. Создайте **новый Custom API Token** ([API Tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Custom Token):
+
+   **Account** → ваш аккаунт:
+
+   - **D1** — *Edit* (без этого будет `10000` на `/d1/database`)
+   - **Workers Scripts** — *Edit*
+   - **Workers R2 Storage** — *Edit*
+
+   **User** (если мастер показывает блок User):
+
+   - **User Details** — *Read*
+   - **Memberships** — *Read* (часто убирает `9106`)
+
+   Обновите значение **GitHub Secret** `CLOUDFLARE_API_TOKEN` и локальный `export CLOUDFLARE_API_TOKEN=...`, затем снова `npm run setup:d1`.
+
+3. Альтернатива: **`npx wrangler login`**, временно **убрать** `CLOUDFLARE_API_TOKEN` из окружения, выполнить `npm run setup:d1`, затем снова использовать токен для CI.
+
 Create R2 bucket (once):
 
 ```bash
@@ -113,7 +140,7 @@ npm run deploy
 | Имя | Назначение |
 |-----|------------|
 | `CLOUDFLARE_API_TOKEN` | **Обязательно.** API Token с правами Workers + D1 + R2. |
-| `CLOUDFLARE_ACCOUNT_ID` | Опционально, если не задан `account_id` в `wrangler.toml`. |
+| `CLOUDFLARE_ACCOUNT_ID` | **Рекомендуется** при API token (тот же, что в `wrangler.toml`). Снижает ошибку `9106` на `/memberships`. |
 
 **Variables (рекомендуется):**
 

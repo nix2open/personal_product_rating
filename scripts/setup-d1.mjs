@@ -46,8 +46,56 @@ Or load from a gitignored file (example):
   }
 }
 
+/** Reduces /memberships calls that fail with API token code 9106. */
+function ensureAccountIdFromWrangler() {
+  if (process.env.CLOUDFLARE_ACCOUNT_ID?.trim()) return;
+  try {
+    const toml = fs.readFileSync(WRANGLER_PATH, "utf8");
+    const m = toml.match(/^account_id\s*=\s*"([^"]+)"/m);
+    if (m?.[1]) {
+      process.env.CLOUDFLARE_ACCOUNT_ID = m[1];
+      console.log(`Set CLOUDFLARE_ACCOUNT_ID from wrangler.toml (${m[1].slice(0, 8)}…)`);
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function printAuthHelp(errText) {
+  if (!/10000|9106|Authentication/i.test(errText)) return;
+  console.error(`
+Cloudflare rejected this token (D1 [10000] and/or /memberships [9106]).
+
+Fix (pick one or combine):
+
+1) Account id in env (often fixes 9106 with API tokens):
+   export CLOUDFLARE_ACCOUNT_ID="a07658b9696c332ed90e69e73c8cdaa1"
+   (same as account_id in wrangler.toml — script sets this automatically if the line exists)
+
+2) Create a NEW Custom API Token (Dashboard → My Profile → API Tokens → Create Token):
+   Account permissions (scope: your account only):
+   • D1 — Edit
+   • Workers Scripts — Edit
+   • Workers R2 Storage — Edit (or Read if you only list buckets)
+   User permissions (if the template shows them):
+   • User Details — Read
+   • Memberships — Read   (helps Wrangler avoid 9106)
+
+   Avoid tokens that only list "Workers" without explicit D1.
+
+3) Or skip the token for one-off setup:  npx wrangler login   then run  npm run setup:d1   (temporarily unset CLOUDFLARE_API_TOKEN).
+`);
+}
+
 function listDatabases() {
-  const raw = run("npx wrangler d1 list --json");
+  let raw;
+  try {
+    raw = run("npx wrangler d1 list --json");
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    printAuthHelp(msg);
+    throw e;
+  }
   const data = JSON.parse(raw);
   return Array.isArray(data) ? data : [];
 }
@@ -108,6 +156,7 @@ function applyMigrations() {
 
 function main() {
   requireToken();
+  ensureAccountIdFromWrangler();
   const id = ensureDatabase();
   patchWranglerToml(id);
   applyMigrations();
