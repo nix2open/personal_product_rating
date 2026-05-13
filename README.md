@@ -142,22 +142,31 @@ npm run deploy
 
 Репозиторий: **Settings → Secrets and variables → Actions**.
 
-**Secrets (обязательно / по желанию):**
+**Secrets**
 
-| Имя | Назначение |
-|-----|------------|
-| `CLOUDFLARE_API_TOKEN` | **Обязательно.** API Token с правами Workers + D1 + R2. |
-| `CLOUDFLARE_ACCOUNT_ID` | **Рекомендуется** при API token (тот же, что в `wrangler.toml`). Снижает ошибку `9106` на `/memberships`. |
+| Имя | Обязательно | Назначение |
+|-----|-------------|------------|
+| `CLOUDFLARE_API_TOKEN` | да | Деплой в Cloudflare |
+| `CLOUDFLARE_ACCOUNT_ID` | нет | Тот же `account_id`, что в `wrangler.toml` |
+| `JWT_SECRET` | нет* | Длинная случайная строка для сессий; после push CI запишет в Worker |
+| `RESEND_API_KEY` | нет* | Ключ Resend для писем magic link |
+| `GOOGLE_CLIENT_SECRET` | нет* | Секрет OAuth Google |
 
-**Variables (рекомендуется):**
+\*Если секрет задан в GitHub, workflow **после каждого деплоя** обновляет его у Worker (`wrangler secret put`). Если не задан — остаётся то, что вы уже вручную задали в Cloudflare.
 
-| Имя | Назначение |
-|-----|------------|
-| `APP_URL` | Публичный URL без слэша в конце, например `https://rating.ethanoloop.ru`. Подставляется при деплое (`--var`), чтобы OAuth и cookie `Secure` работали в проде. |
+**Variables** (вкладка **Variables**, не Secrets — это не пароли):
 
-При каждом **push в `main`** workflow `.github/workflows/deploy.yml` собирает клиент и выполняет `wrangler deploy`. В коммите должен быть **реальный** `database_id` D1 (не плейсхолдер), иначе job завершится с явной ошибкой.
+| Имя | Пример | Назначение |
+|-----|--------|------------|
+| `APP_URL` | `https://rating.example.com` | Прод-URL без `/` в конце |
+| `RESEND_FROM` | `onboarding@resend.dev` | Отправитель Resend (должен быть разрешён в аккаунте Resend) |
+| `GOOGLE_CLIENT_ID` | `123….apps.googleusercontent.com` | Client ID веб-клиента Google |
 
-Секреты воркера (`JWT_SECRET`, `GOOGLE_CLIENT_SECRET`, …) по-прежнему задаются в Cloudflare (**Workers** → выбранный скрипт → **Settings → Variables and Secrets**) или один раз через `wrangler secret put` с вашей машины — GitHub их не подставляет, пока вы сами не добавите отдельные шаги в workflow.
+После заполнения **сделайте пустой commit или любой push в `main`**, чтобы сработал Deploy.
+
+**Вручную только в Google Cloud Console** (автоматом из GitHub не задаётся): для OAuth-клиента добавьте **Authorized redirect URI** = `https://ВАШ_APP_URL/api/auth/google/callback` (тот же хост, что в `APP_URL`).
+
+Те же три значения можно задать **только в Cloudflare** и не дублировать в GitHub — тогда шаг «Upload optional Worker secrets» просто пропустит пустые поля.
 
 ### Deploy error `10021` — `binding DB of type d1 must have a valid database_id`
 
