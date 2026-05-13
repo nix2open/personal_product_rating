@@ -80,6 +80,21 @@ npm run deploy
 
 6. In Cloudflare Dashboard → **Workers & Pages** → your worker → **Custom domains** → add `rating.ethanoloop.ru`.
 
+### Deploy error `10021` — `binding DB of type d1 must have a valid database_id`
+
+Cloudflare rejects deploys until `wrangler.toml` has a **real D1 UUID**, not the placeholder `REPLACE_WITH_YOUR_D1_ID`.
+
+1. Create a database (or reuse an existing name and copy its id):
+
+   ```bash
+   npx wrangler d1 create product-rating-db
+   npx wrangler d1 list
+   ```
+
+2. Put the returned **uuid** into `database_id = "..."` in `wrangler.toml` (same `database_name` as in the create command, unless you intentionally point to another DB).
+
+3. Apply migrations to production: `npx wrangler d1 migrations apply product-rating-db --remote`
+
 ## Sharing & family
 
 - **Sharing**: invite by email. If the invitee already has an account, access is granted immediately; otherwise a pending invite appears until they sign up and **accept** in **Profile → Sharing**.

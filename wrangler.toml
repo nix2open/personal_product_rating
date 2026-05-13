@@ -3,6 +3,9 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-05-12"
 compatibility_flags = ["nodejs_compat"]
 
+# Optional: pin account (see Workers URL /accounts/<id>/...)
+account_id = "a07658b9696c332ed90e69e73c8cdaa1"
+
 [vars]
 APP_URL = "http://localhost:5173"
 JWT_SECRET = "dev-only-change-in-production-use-wrangler-secret-put"
@@ -12,6 +15,10 @@ directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
+# D1: deploy fails with [code: 10021] until database_id is a real UUID from your account.
+# Create:  npx wrangler d1 create product-rating-db
+# List:    npx wrangler d1 list
+# Then paste the "uuid" column here (must match database_name if you reuse an existing DB).
 [[d1_databases]]
 binding = "DB"
 database_name = "product-rating-db"
