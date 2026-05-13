@@ -80,6 +80,27 @@ npm run deploy
 
 6. In Cloudflare Dashboard → **Workers & Pages** → your worker → **Custom domains** → add `rating.ethanoloop.ru`.
 
+### GitHub Actions deploy (после пункта с токеном)
+
+Репозиторий: **Settings → Secrets and variables → Actions**.
+
+**Secrets (обязательно / по желанию):**
+
+| Имя | Назначение |
+|-----|------------|
+| `CLOUDFLARE_API_TOKEN` | **Обязательно.** API Token с правами Workers + D1 + R2. |
+| `CLOUDFLARE_ACCOUNT_ID` | Опционально, если не задан `account_id` в `wrangler.toml`. |
+
+**Variables (рекомендуется):**
+
+| Имя | Назначение |
+|-----|------------|
+| `APP_URL` | Публичный URL без слэша в конце, например `https://rating.ethanoloop.ru`. Подставляется при деплое (`--var`), чтобы OAuth и cookie `Secure` работали в проде. |
+
+При каждом **push в `main`** workflow `.github/workflows/deploy.yml` собирает клиент и выполняет `wrangler deploy`. В коммите должен быть **реальный** `database_id` D1 (не плейсхолдер), иначе job завершится с явной ошибкой.
+
+Секреты воркера (`JWT_SECRET`, `GOOGLE_CLIENT_SECRET`, …) по-прежнему задаются в Cloudflare (**Workers** → выбранный скрипт → **Settings → Variables and Secrets**) или один раз через `wrangler secret put` с вашей машины — GitHub их не подставляет, пока вы сами не добавите отдельные шаги в workflow.
+
 ### Deploy error `10021` — `binding DB of type d1 must have a valid database_id`
 
 Cloudflare rejects deploys until `wrangler.toml` has a **real D1 UUID**, not the placeholder `REPLACE_WITH_YOUR_D1_ID`.
