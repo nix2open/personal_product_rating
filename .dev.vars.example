@@ -1,0 +1,18 @@
+# Copy to .dev.vars for local `wrangler dev` (never commit .dev.vars)
+
+# Required for sessions (min 32 random chars)
+JWT_SECRET=change-me-to-a-long-random-string
+
+# Public URL of the app (no trailing slash). Production: https://rating.ethanoloop.ru
+APP_URL=http://localhost:5173
+
+# Google OAuth (Web application client)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Email magic links via Resend (https://resend.com). If empty, dev mode may return link in JSON when ALLOW_DEV_MAGIC_REVEAL=true
+RESEND_API_KEY=
+RESEND_FROM=noreply@yourdomain.com
+
+# Only for local dev: if true and RESEND_API_KEY empty, POST /api/auth/magic-link returns magicLinkUrl in JSON
+ALLOW_DEV_MAGIC_REVEAL=true

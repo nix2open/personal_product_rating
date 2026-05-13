@@ -1,0 +1,9 @@
+FROM arm32v7/node:20-bullseye
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY src ./src
+
+EXPOSE 4000
+CMD ["npm", "start"]

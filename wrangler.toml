@@ -1,0 +1,28 @@
+name = "product-rating-pwa"
+main = "src/worker/index.ts"
+compatibility_date = "2025-05-12"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+APP_URL = "http://localhost:5173"
+JWT_SECRET = "dev-only-change-in-production-use-wrangler-secret-put"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "product-rating-db"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[[r2_buckets]]
+binding = "PHOTOS"
+bucket_name = "product-rating-photos"
+
+[observability]
+enabled = true
+
+# Custom domain (example): rating.ethanoloop.ru
+# After deploy: Cloudflare Dashboard → Workers → Custom Domains → Add
