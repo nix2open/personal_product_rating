@@ -167,6 +167,28 @@ Cloudflare rejects deploys until `wrangler.toml` has a **real D1 UUID**, not the
 
 3. Apply migrations to production: `npx wrangler d1 migrations apply product-rating-db --remote`
 
+### Ошибка `10053` — `JWT_SECRET` already in use
+
+Нельзя задавать **`JWT_SECRET` и в `wrangler.toml` → `[vars]`, и как Secret**. В репозитории `JWT_SECRET` только через **`wrangler secret put JWT_SECRET`** или в Dashboard → **Secrets**.
+
+После деплоя без дубликата в `[vars]` выполните:
+
+```bash
+npx wrangler secret put JWT_SECRET
+```
+
+Локально **`wrangler dev`**: положите `JWT_SECRET` в файл **`.dev.vars`** (см. `.dev.vars.example`), он не коммитится.
+
+### Git: не коммитится `wrangler.toml`
+
+Команды из инструкций выполняйте **по одной строке**. Комментарий `# ...` в той же строке, что и `git commit -m "..."`, в некоторых оболочках ломает кавычки — тогда `git` воспринимает `#` как имя файла.
+
+```bash
+git add wrangler.toml
+git commit -m "chore: set D1 database_id"
+git push
+```
+
 ## Sharing & family
 
 - **Sharing**: invite by email. If the invitee already has an account, access is granted immediately; otherwise a pending invite appears until they sign up and **accept** in **Profile → Sharing**.
