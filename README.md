@@ -1,5 +1,7 @@
 # Product Rating PWA
 
+Personal product ratings: track and collect your own scores on consumed products and goods.
+
 > **Note:** This directory may still contain files from an older project (for example `backend/`, Docker images, or `*.tar.gz`). They are unrelated to this PWA; ESLint ignores `backend/`. Remove them if you want a clean tree.
 
 Personal product ratings as a **Progressive Web App** (installable, offline shell via Workbox), optimized for **iPhone**, with **Russian/English** UI, **light/dark theme**, **email magic link** + **Google** sign-in, data on **Cloudflare** (Worker + **D1** + **R2**).
@@ -98,3 +100,4 @@ npm run deploy
 ## License
 
 MIT
+
