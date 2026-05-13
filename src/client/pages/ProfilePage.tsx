@@ -10,13 +10,19 @@ export function ProfilePage() {
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState<string | null>(null);
+  const [isPasswordAccount, setIsPasswordAccount] = useState(false);
 
   useEffect(() => {
     void (async () => {
-      const r = await apiFetch<{ user: { email: string; name: string | null } }>("/api/auth/me");
+      const r = await apiFetch<{
+        user: { email: string; name: string | null; username?: string | null; isPasswordAccount?: boolean } | null;
+      }>("/api/auth/me");
       if (r.user) {
         setEmail(r.user.email);
         setName(r.user.name ?? "");
+        setUsername(r.user.username ?? null);
+        setIsPasswordAccount(Boolean(r.user.isPasswordAccount));
       }
     })();
   }, []);
@@ -34,7 +40,16 @@ export function ProfilePage() {
     <div className="page">
       <h1 className="title">{t("profile")}</h1>
       <div className="card list">
-        <div className="subtitle">{email}</div>
+        {isPasswordAccount && username ? (
+          <>
+            <div style={{ fontWeight: 600 }}>
+              {t("profileUsername")}: @{username}
+            </div>
+            <p className="subtitle">{t("profilePasswordAccountHint")}</p>
+          </>
+        ) : (
+          <div className="subtitle">{email}</div>
+        )}
         <div className="field">
           <label>{t("displayName")}</label>
           <input value={name} onChange={(e) => setName(e.target.value)} />

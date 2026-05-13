@@ -11,14 +11,14 @@ export async function requireAuth(
     return c.json({ error: "unauthorized" }, 401);
   }
   const row = await c.env.DB.prepare(
-    "SELECT id, email, name FROM users WHERE id = ?",
+    "SELECT id, email, name, username FROM users WHERE id = ?",
   )
     .bind(s.sub)
-    .first<{ id: string; email: string; name: string | null }>();
+    .first<{ id: string; email: string; name: string | null; username: string | null }>();
   if (!row) {
     return c.json({ error: "unauthorized" }, 401);
   }
-  c.set("user", { id: row.id, email: row.email, name: row.name });
+  c.set("user", { id: row.id, email: row.email, name: row.name, username: row.username });
   await next();
 }
 
@@ -29,11 +29,11 @@ export async function optionalAuth(
   const s = await readSession(c);
   if (s) {
     const row = await c.env.DB.prepare(
-      "SELECT id, email, name FROM users WHERE id = ?",
+      "SELECT id, email, name, username FROM users WHERE id = ?",
     )
       .bind(s.sub)
-      .first<{ id: string; email: string; name: string | null }>();
-    if (row) c.set("user", { id: row.id, email: row.email, name: row.name });
+      .first<{ id: string; email: string; name: string | null; username: string | null }>();
+    if (row) c.set("user", { id: row.id, email: row.email, name: row.name, username: row.username });
   }
   await next();
 }

@@ -95,11 +95,13 @@ npm run dev
 
 Open `http://localhost:5173`. Magic-link emails: configure `RESEND_API_KEY` + `RESEND_FROM` in `.dev.vars`, or set `ALLOW_DEV_MAGIC_REVEAL=true` and use the `devMagicLinkUrl` returned by `POST /api/auth/magic-link`.
 
-**Google OAuth**: create a Web client in Google Cloud Console. Authorized redirect URI:
+**Google OAuth** stays on the **free** tier for this app: you only need a Google Cloud project, OAuth consent screen (type **External** is fine; add yourself as a test user while in “Testing”), and a **Web application** OAuth client. You do **not** need to enable billing for basic sign-in. Authorized redirect URI for local dev:
 
 `http://localhost:5173/api/auth/google/callback`
 
 Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `APP_URL=http://localhost:5173` in `.dev.vars`.
+
+**Кратко (Google Cloud, бесплатно):** [Google Cloud Console](https://console.cloud.google.com/) → создать проект → **APIs & Services** → **OAuth consent screen** (User type External, заполнить название приложения) → **Credentials** → **Create credentials** → **OAuth client ID** → тип **Web application** → в **Authorized redirect URIs** добавить `http://localhost:5173/api/auth/google/callback` (и прод: `https://ВАШ_ДОМЕН/api/auth/google/callback`). Скопируйте **Client ID** в переменную Worker и **Client secret** в секрет. Пока приложение в режиме тестирования, добавьте свои Google-аккаунты в список **Test users**, иначе вход будет доступен только им.
 
 ## Build
 
@@ -207,7 +209,9 @@ git push
 
 ## Sharing & family
 
-- **Sharing**: invite by email. If the invitee already has an account, access is granted immediately; otherwise a pending invite appears until they sign up and **accept** in **Profile → Sharing**.
+- **Sharing (tokens)**: in **Profile → Sharing**, the owner taps **Generate access** and sends the one-time token in any messenger. The recipient opens the same screen and uses **Import rating** (optional label + token). Access is stored like other share relationships; the owner can revoke access per user or revoke individual tokens.
+- **Sharing (email, optional)**: invite by email. If the invitee already has an account, access is granted immediately; otherwise a pending invite appears until they sign up and **accept** in **Profile → Sharing**.
+- **Password accounts**: users can **register** with a username and password (no Google required). Magic link and Google remain available.
 - **Family**: owner creates a group and invites by email. Pending members accept from **Family** when the row matches their email. Active members see each other’s ratings for products (same visibility rules as bidirectional “family” in search detail).
 
 ## Security notes

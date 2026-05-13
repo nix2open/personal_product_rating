@@ -12,5 +12,5 @@ export type Env = {
 };
 
 export type AppVariables = {
-  user?: { id: string; email: string; name: string | null };
+  user?: { id: string; email: string; name: string | null; username: string | null };
 };

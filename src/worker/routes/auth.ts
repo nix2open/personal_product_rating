@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { z } from "zod";
-import { randomId, sha256Hex } from "../crypto";
+import { hashPasswordForStorage, randomId, sha256Hex, verifyPassword } from "../crypto";
 import { sendMagicLinkEmail } from "../email";
 import { clearSessionCookie, setSessionCookie, signSession } from "../session";
 import type { Env, AppVariables } from "../types";
@@ -20,7 +20,15 @@ export const authRouter = new Hono<{ Bindings: Env; Variables: AppVariables }>()
 authRouter.get("/me", optionalAuth, async (c) => {
   const u = c.get("user");
   if (!u) return c.json({ user: null });
-  return c.json({ user: u });
+  return c.json({
+    user: {
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      username: u.username,
+      isPasswordAccount: u.email.endsWith("@pw.internal"),
+    },
+  });
 });
 
 authRouter.patch("/profile", requireAuth, async (c) => {
@@ -38,6 +46,66 @@ authRouter.patch("/profile", requireAuth, async (c) => {
 authRouter.post("/logout", async (c) => {
   clearSessionCookie(c);
   return c.json({ ok: true });
+});
+
+const registerSchema = z.object({
+  username: z
+    .string()
+    .min(3)
+    .max(32)
+    .regex(/^[a-zA-Z0-9_]+$/)
+    .transform((s) => s.trim().toLowerCase()),
+  password: z.string().min(8).max(200),
+});
+
+authRouter.post("/register", async (c) => {
+  const parsed = registerSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: "invalid_body", issues: parsed.error.flatten() }, 400);
+  const { username, password } = parsed.data;
+  const taken = await c.env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
+  if (taken) return c.json({ error: "username_taken" }, 409);
+  const uid = randomId();
+  const fakeEmail = `${uid}@pw.internal`;
+  const ph = await hashPasswordForStorage(password);
+  const now = Date.now();
+  await c.env.DB.prepare(
+    "INSERT INTO users (id, email, name, google_sub, username, password_hash, created_at) VALUES (?, ?, NULL, NULL, ?, ?, ?)",
+  )
+    .bind(uid, fakeEmail, username, ph, now)
+    .run();
+  const jwt = await signSession(c, { sub: uid, email: fakeEmail, name: null });
+  setSessionCookie(c, jwt);
+  return c.json({ ok: true, user: { id: uid, username, email: fakeEmail, name: null } });
+});
+
+const passwordLoginSchema = z.object({
+  username: z.string().min(1).max(32).transform((s) => s.trim().toLowerCase()),
+  password: z.string().min(1).max(200),
+});
+
+authRouter.post("/password-login", async (c) => {
+  const parsed = passwordLoginSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: "invalid_body" }, 400);
+  const user = await c.env.DB.prepare(
+    "SELECT id, email, name, username, password_hash FROM users WHERE username = ?",
+  )
+    .bind(parsed.data.username)
+    .first<{
+      id: string;
+      email: string;
+      name: string | null;
+      username: string | null;
+      password_hash: string | null;
+    }>();
+  if (!user?.password_hash) return c.json({ error: "invalid_credentials" }, 401);
+  const ok = await verifyPassword(parsed.data.password, user.password_hash);
+  if (!ok) return c.json({ error: "invalid_credentials" }, 401);
+  const jwt = await signSession(c, { sub: user.id, email: user.email, name: user.name });
+  setSessionCookie(c, jwt);
+  return c.json({
+    ok: true,
+    user: { id: user.id, email: user.email, name: user.name, username: user.username },
+  });
 });
 
 authRouter.post("/magic-link", async (c) => {
